@@ -75,7 +75,8 @@ class ConsumeIn(BaseModel):
 def consume(body: ConsumeIn):
     c = connect()
     lots = [dict(r) for r in c.execute(
-        "SELECT * FROM lots WHERE item_id=? AND status='on_shelf' AND qty_remain>0", (body.item_id,))]
+        "SELECT * FROM lots WHERE item_id=? AND status='on_shelf' AND qty_remain>0"
+        " AND COALESCE(data_quality,'clean') <> 'dirty'", (body.item_id,))]
     result = consume_fefo(lots, body.qty)
     if not result["ok"] and result["reason"] == "qty_non_positive":
         c.close(); raise HTTPException(400, result["reason"])
